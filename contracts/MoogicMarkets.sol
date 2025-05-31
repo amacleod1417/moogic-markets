@@ -38,6 +38,9 @@ contract MoogicMarket is Ownable, IRandomConsumer {
 
     mapping(uint256 => address[]) public correctPredictors;
     mapping(uint256 => address) public bonusWinner;
+    mapping(uint256 => mapping(address => uint256)) public userSelections; // user → selectedOption
+    mapping(uint256 => mapping(uint256 => uint256)) public optionStakes; // option → total staked
+    mapping(uint256 => uint256) public winningOption;
 
 
     event MarketCreated(uint256 indexed id, string question);
@@ -71,24 +74,12 @@ contract MoogicMarket is Ownable, IRandomConsumer {
         marketId++;
     }
 
-    function placeBet(uint256 _id, bool _prediction) external payable {
-        Market storage m = markets[_id];
-        require(block.timestamp < m.deadline, "Market closed");
-        require(msg.value > 0, "Must stake to bet");
+    function placeBet(uint256 marketId, uint256 selectedOption) external payable {
+    require(msg.value > 0, "Stake required");
+    require(userSelections[marketId][msg.sender] == 0, "Already placed");
 
-        Bet storage b = bets[_id][msg.sender];
-        require(b.amount == 0, "Already bet");
-
-        b.prediction = _prediction;
-        b.amount = msg.value;
-
-        if (_prediction) {
-            m.totalYes += msg.value;
-        } else {
-            m.totalNo += msg.value;
-        }
-
-        emit BetPlaced(_id, msg.sender, _prediction, msg.value);
+    userSelections[marketId][msg.sender] = selectedOption;
+    optionStakes[marketId][selectedOption] += msg.value;
     }
 
     function resolveFromFDC(uint256 _id, bytes32 queryId) external onlyOwner {

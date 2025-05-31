@@ -1,0 +1,72 @@
+{
+  "timestamp": "2025-05-31T19:05:56.972Z",
+  "weather": [
+    {
+      "number": 1,
+      "name": "This Afternoon",
+      "startTime": "2025-05-31T14:00:00-05:00",
+      "endTime": "2025-05-31T18:00:00-05:00",
+      "isDaytime": true,
+      "temperature": 85,
+      "temperatureUnit": "F",
+      "temperatureTrend": "",
+      "probabilityOfPrecipitation": {
+        "unitCode": "wmoUnit:percent",
+        "value": 13
+      },
+      "windSpeed": "10 mph",
+      "windDirection": "NW",
+      "icon": "https://api.weather.gov/icons/land/day/few?size=medium",
+      "shortForecast": "Sunny",
+      "detailedForecast": "Sunny, with a high near 85. Northwest wind around 10 mph."
+    },
+    {
+      "number": 2,
+      "name": "Tonight",
+      "startTime": "2025-05-31T18:00:00-05:00",
+      "endTime": "2025-06-01T06:00:00-05:00",
+      "isDaytime": false,
+      "temperature": 56,
+      "temperatureUnit": "F",
+      "temperatureTrend": "",
+      "probabilityOfPrecipitation": {
+        "unitCode": "wmoUnit:percent",
+        "value": 11
+      },
+      "windSpeed": "5 to 10 mph",
+      "windDirection": "NW",
+      "icon": "https://api.weather.gov/icons/land/night/few?size=medium",
+      "shortForecast": "Mostly Clear",
+      "detailedForecast": "Mostly clear, with a low around 56. Northwest wind 5 to 10 mph."
+    },
+    {
+      "number": 3,
+      "name": "Sunday",
+      "startTime": "2025-06-01T06:00:00-05:00",
+      "endTime": "2025-06-01T18:00:00-05:00",
+      "isDaytime": true,
+      "temperature": 87,
+      "temperatureUnit": "F",
+      "temperatureTrend": "",
+      "probabilityOfPrecipitation": {
+        "unitCode": "wmoUnit:percent",
+        "value": 0
+      },
+      "windSpeed": "0 to 5 mph",
+      "windDirection": "NE",
+      "icon": "https://api.weather.gov/icons/land/day/sct?size=medium",
+      "shortForecast": "Mostly Sunny",
+      "detailedForecast": "Mostly sunny, with a high near 87. Northeast wind 0 to 5 mph."
+    }
+  ],
+  "commodities": {
+    "corn": "$5.12/bushel",
+    "soybeans": "$12.34/bushel",
+    "milk": "$22.50/cwt"
+  },
+  "satellite": {
+    "soilMoisture": "Moderate",
+    "vegetationHealth": "Healthy",
+    "timestamp": "2025-05-31T19:05:56.971Z"
+  }
+}

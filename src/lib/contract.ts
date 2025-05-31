@@ -25,6 +25,4 @@ export const getSigner = async () => {
 export const getMoogicMarketContract = async () => {
   const signer = await getSigner();
   return new ethers.Contract(CONTRACT_ADDRESS, MoogicMarketsABI.abi, signer);
-};
-
-
+}; 
