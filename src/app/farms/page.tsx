@@ -9,7 +9,6 @@ import { useWeb3, SUPPORTED_NETWORKS } from "../../lib/web3"
 import { MapPin, Thermometer, Droplets, Sun, Wind, Activity, AlertCircle } from "lucide-react"
 import * as React from "react"
 import { useState } from "react"
-import FarmDataPanel from "../../components/FarmDataPanel"
 
 
 
@@ -24,66 +23,70 @@ const farms = [
     metrics: {
       temperature: "72°F",
       humidity: "65%",
-      rainfall: "0.2in",
-      windSpeed: "8mph",
+      milkProduction: "2,500 gal/day",
+      feedConsumption: "1,200 lbs/day",
       activity: "High",
     },
     livestock: {
-      cows: 120,
-      goats: 45,
-      chickens: 500,
+      dairyCows: 120,
+      calves: 15,
+      heifers: 30,
     },
-    crops: {
-      corn: "120 acres",
-      soybeans: "80 acres",
-      alfalfa: "40 acres",
+    production: {
+      milkYield: "21 gal/cow",
+      butterfat: "3.8%",
+      protein: "3.2%",
+      somaticCells: "150,000/ml",
     },
   },
   {
     id: 2,
-    name: "Sunny Acres",
+    name: "Sunny Acres Dairy",
     location: "Iowa, USA",
-    type: "Mixed",
+    type: "Dairy",
     status: "active",
     metrics: {
       temperature: "75°F",
       humidity: "60%",
-      rainfall: "0.1in",
-      windSpeed: "5mph",
+      milkProduction: "1,800 gal/day",
+      feedConsumption: "900 lbs/day",
       activity: "Medium",
     },
     livestock: {
-      cows: 80,
-      goats: 30,
-      chickens: 300,
+      dairyCows: 80,
+      calves: 10,
+      heifers: 20,
     },
-    crops: {
-      corn: "200 acres",
-      soybeans: "150 acres",
-      wheat: "100 acres",
+    production: {
+      milkYield: "22.5 gal/cow",
+      butterfat: "4.0%",
+      protein: "3.3%",
+      somaticCells: "120,000/ml",
     },
   },
   {
     id: 3,
-    name: "Mountain View Ranch",
+    name: "Mountain View Dairy",
     location: "Colorado, USA",
-    type: "Livestock",
+    type: "Dairy",
     status: "active",
     metrics: {
       temperature: "68°F",
       humidity: "55%",
-      rainfall: "0.3in",
-      windSpeed: "12mph",
+      milkProduction: "3,200 gal/day",
+      feedConsumption: "1,500 lbs/day",
       activity: "Low",
     },
     livestock: {
-      cows: 200,
-      goats: 100,
-      chickens: 200,
+      dairyCows: 200,
+      calves: 25,
+      heifers: 45,
     },
-    crops: {
-      hay: "150 acres",
-      pasture: "300 acres",
+    production: {
+      milkYield: "16 gal/cow",
+      butterfat: "4.2%",
+      protein: "3.4%",
+      somaticCells: "100,000/ml",
     },
   },
 ]
@@ -167,49 +170,49 @@ export default function FarmsPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center space-x-2">
                           <Thermometer className="h-4 w-4 text-orange-500" />
-                          <span className="text-sm">{farm.metrics.temperature}</span>
+                          <span className="text-sm text-gray-900">{farm.metrics.temperature}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Droplets className="h-4 w-4 text-blue-500" />
-                          <span className="text-sm">{farm.metrics.humidity}</span>
+                          <span className="text-sm text-gray-900">{farm.metrics.humidity}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Sun className="h-4 w-4 text-yellow-500" />
-                          <span className="text-sm">{farm.metrics.rainfall}</span>
+                          <span className="text-sm text-gray-900">{farm.metrics.milkProduction}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Wind className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm">{farm.metrics.windSpeed}</span>
+                          <span className="text-sm text-gray-900">{farm.metrics.feedConsumption}</span>
                         </div>
                       </div>
 
                       {/* Livestock */}
                       <div>
-                        <h3 className="text-sm font-medium mb-2">Livestock</h3>
+                        <h3 className="text-sm font-medium mb-2">Dairy Herd</h3>
                         <div className="grid grid-cols-3 gap-2 text-sm">
                           <div className="bg-gray-50 p-2 rounded">
-                            <div className="text-gray-500">Cows</div>
-                            <div className="font-medium">{farm.livestock.cows}</div>
+                            <div className="text-gray-700">Dairy Cows</div>
+                            <div className="font-medium text-gray-900">{farm.livestock.dairyCows}</div>
                           </div>
                           <div className="bg-gray-50 p-2 rounded">
-                            <div className="text-gray-500">Goats</div>
-                            <div className="font-medium">{farm.livestock.goats}</div>
+                            <div className="text-gray-700">Calves</div>
+                            <div className="font-medium text-gray-900">{farm.livestock.calves}</div>
                           </div>
                           <div className="bg-gray-50 p-2 rounded">
-                            <div className="text-gray-500">Chickens</div>
-                            <div className="font-medium">{farm.livestock.chickens}</div>
+                            <div className="text-gray-700">Heifers</div>
+                            <div className="font-medium text-gray-900">{farm.livestock.heifers}</div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Crops */}
+                      {/* Production */}
                       <div>
-                        <h3 className="text-sm font-medium mb-2">Crops</h3>
+                        <h3 className="text-sm font-medium mb-2">Milk Quality</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          {Object.entries(farm.crops).map(([crop, acres]) => (
-                            <div key={crop} className="bg-gray-50 p-2 rounded">
-                              <div className="text-gray-500 capitalize">{crop}</div>
-                              <div className="font-medium">{acres}</div>
+                          {Object.entries(farm.production).map(([metric, value]) => (
+                            <div key={metric} className="bg-gray-50 p-2 rounded">
+                              <div className="text-gray-700 capitalize">{metric.replace(/([A-Z])/g, ' $1').trim()}</div>
+                              <div className="font-medium text-gray-900">{value}</div>
                             </div>
                           ))}
                         </div>
@@ -230,9 +233,7 @@ export default function FarmsPage() {
                 </Card>
               ))}
             </div>
-            <div className="mt-6">
-              <FarmDataPanel />
-            </div>
+      
           </div>
         )}
       </div>

@@ -6,4 +6,6 @@ interface IPriceReader {
         external
         view
         returns (uint256 price, uint256 decimals);
+
+    function getCurrentPrice(string memory symbol) external view returns (uint256 price, uint256 timestamp);
 }

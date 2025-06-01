@@ -8,33 +8,33 @@ type UserTypeColor = "green" | "blue" | "purple" | "pink"
 const userTypes = [
   {
     icon: Tractor,
-    title: "Farmers",
-    description: "Hedge your risks and monetize your farm data",
-    benefits: ["Risk management tools", "Data monetization", "Weather insurance", "Yield predictions"],
+    title: "Dairy Farmers",
+    description: "Hedge your risks and monetize your dairy farm data",
+    benefits: ["Milk yield predictions", "Cow health monitoring", "Breeding outcomes", "Feed optimization"],
     cta: "Start Hedging",
     color: "green" as UserTypeColor,
   },
   {
     icon: Shield,
-    title: "Insurance Providers",
-    description: "Access real-time agricultural data for better risk assessment",
-    benefits: ["Real-time risk data", "Automated claims", "Predictive analytics", "Cost reduction"],
+    title: "Livestock Insurance",
+    description: "Access real-time dairy cow data for better risk assessment",
+    benefits: ["Cow health metrics", "Milk production data", "Breeding success rates", "Disease prevention"],
     cta: "Get Data Access",
     color: "blue" as UserTypeColor,
   },
   {
     icon: FlaskConical,
-    title: "Climate Researchers",
-    description: "Leverage crowd predictions for climate and agricultural research",
-    benefits: ["Crowd intelligence", "Data aggregation", "Research funding", "Publication data"],
+    title: "Dairy Researchers",
+    description: "Leverage crowd predictions for dairy science research",
+    benefits: ["Breeding patterns", "Milk yield analysis", "Health indicators", "Nutrition studies"],
     cta: "Join Research",
     color: "purple" as UserTypeColor,
   },
   {
     icon: Zap,
-    title: "Degens",
-    description: "Bet on goats, cows, and other farm shenanigans for fun and profit",
-    benefits: ["High-yield bets", "Unique markets", "Community vibes", "Meme potential"],
+    title: "Cow Enthusiasts",
+    description: "Bet on cow events, milk yields, and dairy outcomes",
+    benefits: ["Milk production bets", "Breeding predictions", "Show competitions", "Dairy awards"],
     cta: "Let's Degen",
     color: "pink" as UserTypeColor,
   },
@@ -46,7 +46,7 @@ export function UserTypes() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Who Uses CowDAO?</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
             From serious farmers to goat-betting degens, we've got something for everyone
           </p>
         </div>
@@ -96,8 +96,8 @@ export function UserTypes() {
                   <CardTitle className="text-xl">{type.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="text-gray-600 mb-4">{type.description}</p>
-                  <ul className="text-sm text-gray-500 space-y-1 mb-6">
+                  <p className="text-gray-700 mb-4">{type.description}</p>
+                  <ul className="text-sm text-gray-700 space-y-1 mb-6">
                     {type.benefits.map((benefit, i) => (
                       <li key={i}>• {benefit}</li>
                     ))}

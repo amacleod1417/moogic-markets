@@ -249,12 +249,12 @@ module.exports = {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard("NEXT_PUBLIC_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3", 5)}
+                    onClick={() => copyToClipboard("NEXT_PUBLIC_CONTRACT_ADDRESS=0x01a5B26EdeC3e2B4f17BC3D95c47ec8d752AC921", 5)}
                   >
                     {copiedStep === 5 ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
-                <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3</code>
+                <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=0x01a5B26EdeC3e2B4f17BC3D95c47ec8d752AC921</code>
               </div>
 
               <div className="flex space-x-2">

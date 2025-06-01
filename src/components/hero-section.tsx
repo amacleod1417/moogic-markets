@@ -26,17 +26,17 @@ export function HeroSection() {
           </Badge>
 
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Bet on{" "}
+            Bet on Everything{" "}
             <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Bessie's Baby
+              COW
             </span>
             <br />
-            <span className="text-3xl md:text-4xl">& Other Farm Outcomes</span>
+            <span className="text-3xl md:text-4xl">Defi Meets Dairy</span>
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             The world's first decentralized prediction market for granular agricultural outcomes. Bet on cow births,
-            rainfall timing, crop yields, and goat shenanigans using real IoT sensor data.
+            milk production, daily cow movements, and other shenanigans using real IoT sensor data.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -84,7 +84,7 @@ export function HeroSection() {
             <div className="text-center">
               <Cow className="h-12 w-12 text-purple-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Farm Partners</h3>
-              <p className="text-gray-600 text-sm">200+ connected farms worldwide</p>
+              <p className="text-gray-600 text-sm">Connected to real life farms worldwide</p>
             </div>
           </div>
         </div>

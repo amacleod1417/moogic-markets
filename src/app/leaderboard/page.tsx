@@ -2,129 +2,239 @@
 
 import { Header } from "../../components/header"
 import { Footer } from "../../components/footer"
-import { MeritsLeaderboard } from "../../components/merits-leaderboard"
 import { useWeb3 } from "../../lib/web3"
 import { useEffect, useState } from "react"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
-import { Trophy, Star, Flame, Medal, MapPin } from "lucide-react"
+import { Badge } from "../../components/ui/badge"
+import { Trophy, TrendingUp, Target, Award } from "lucide-react"
+import * as React from "react"
+
+// Mock leaderboard data
+const mockLeaderboardData = [
+  {
+    address: "0x1234...5678",
+    username: "BessieWhisperer",
+    merits: 750,
+    totalPredictions: 45,
+    winRate: 0.89,
+    rank: 1
+  },
+  {
+    address: "0x2345...6789",
+    username: "DairyKing",
+    merits: 520,
+    totalPredictions: 38,
+    winRate: 0.82,
+    rank: 2
+  },
+  {
+    address: "0x3456...7890",
+    username: "MilkMaster",
+    merits: 480,
+    totalPredictions: 42,
+    winRate: 0.79,
+    rank: 3
+  },
+  {
+    address: "0x4567...8901",
+    username: "CalfExpert",
+    merits: 320,
+    totalPredictions: 29,
+    winRate: 0.75,
+    rank: 4
+  },
+  {
+    address: "0x5678...9012",
+    username: "FarmOracle",
+    merits: 280,
+    totalPredictions: 25,
+    winRate: 0.72,
+    rank: 5
+  },
+  {
+    address: "0x6789...0123",
+    username: "HayHero",
+    merits: 210,
+    totalPredictions: 18,
+    winRate: 0.68,
+    rank: 6
+  },
+  {
+    address: "0x7890...1234",
+    username: "BarnBuddy",
+    merits: 180,
+    totalPredictions: 15,
+    winRate: 0.65,
+    rank: 7
+  },
+  {
+    address: "0x8901...2345",
+    username: "MilkMaven",
+    merits: 150,
+    totalPredictions: 12,
+    winRate: 0.62,
+    rank: 8
+  },
+  {
+    address: "0x9012...3456",
+    username: "CattleCaller",
+    merits: 120,
+    totalPredictions: 10,
+    winRate: 0.60,
+    rank: 9
+  },
+  {
+    address: "0x0123...4567",
+    username: "FarmFresh",
+    merits: 90,
+    totalPredictions: 8,
+    winRate: 0.58,
+    rank: 10
+  }
+]
 
 export default function LeaderboardPage() {
-  const { isConnected, connect, fetchLeaderboard, userMerits } = useWeb3()
-  const [leaderboard, setLeaderboard] = useState<any[]>([])
+  const { isConnected, connect, userMerits } = useWeb3()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loadLeaderboard = async () => {
-      if (isConnected) {
-        setLoading(true)
-        const data = await fetchLeaderboard()
-        setLeaderboard(data)
-        setLoading(false)
-      }
-    }
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 1000)
 
-    loadLeaderboard()
-  }, [isConnected, fetchLeaderboard])
-
-  const getBadgeInfo = (merits: number) => {
-    if (merits >= 500) return { name: "🌟 Legend", icon: Star, color: "text-yellow-500", description: "The elite of CowDAO" }
-    if (merits >= 200) return { name: "🔥 Pro", icon: Flame, color: "text-orange-500", description: "A seasoned predictor" }
-    if (merits >= 50) return { name: "🥉 Beginner", icon: Medal, color: "text-blue-500", description: "Getting the hang of it" }
-    return { name: "📍 Newcomer", icon: MapPin, color: "text-gray-500", description: "Just starting out" }
-  }
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="min-h-screen">
       <Header />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">🏆 Merits Leaderboard</h1>
-          <p className="text-gray-600">Top predictors ranked by their Merits points</p>
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-purple-900 mb-4">🏆 Merits Leaderboard</h1>
+          <p className="text-lg text-purple-700 max-w-2xl mx-auto">
+            Top predictors in the CowDAO ecosystem, ranked by their merits
+          </p>
         </div>
 
         {!isConnected ? (
           <div className="text-center py-20">
-            <p className="text-lg text-gray-600 mb-8">Please connect your wallet to view the leaderboard</p>
+            <h1 className="text-3xl font-bold text-purple-900 mb-4">Merits Leaderboard</h1>
+            <p className="text-purple-700 mb-8">Please connect your wallet to view the leaderboard.</p>
             <Button onClick={connect} className="bg-purple-600 hover:bg-purple-700" size="lg">
               Connect Wallet
             </Button>
           </div>
         ) : loading ? (
           <div className="text-center py-20">
-            <p className="text-lg text-gray-600">Loading leaderboard...</p>
+            <p className="text-lg text-purple-700">Loading leaderboard data...</p>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <MeritsLeaderboard entries={leaderboard} />
+          <>
+            {/* User Stats Section */}
+            <div className="mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-purple-900">Your Merits</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-purple-700">{userMerits}</div>
+                    <p className="text-sm text-purple-600 mt-2">Total merits earned</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-purple-900">Your Rank</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-purple-700">#1</div>
+                    <p className="text-sm text-purple-600 mt-2">Top predictor!</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-purple-900">Win Rate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-green-600">89%</div>
+                    <p className="text-sm text-purple-600 mt-2">Successful predictions</p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(() => {
-                    const badge = getBadgeInfo(userMerits)
-                    const Icon = badge.icon
-                    return (
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3">
-                          <Icon className={`h-8 w-8 ${badge.color}`} />
-                          <div>
-                            <div className={`font-bold text-lg ${badge.color}`}>{badge.name}</div>
-                            <div className="text-sm text-gray-500">{badge.description}</div>
+            {/* Leaderboard Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mockLeaderboardData.map((entry, index) => (
+                <Card key={entry.address} className="hover:shadow-lg transition-all bg-gradient-to-br from-purple-50 to-pink-50">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="relative">
+                          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                            {index === 0 ? (
+                              <Trophy className="h-6 w-6 text-yellow-500" />
+                            ) : index === 1 ? (
+                              <TrendingUp className="h-6 w-6 text-purple-400" />
+                            ) : index === 2 ? (
+                              <Target className="h-6 w-6 text-pink-500" />
+                            ) : (
+                              <Award className="h-6 w-6 text-purple-500" />
+                            )}
                           </div>
+                          <Badge
+                            className="absolute -top-2 -right-2 bg-purple-600"
+                            variant="secondary"
+                          >
+                            #{index + 1}
+                          </Badge>
                         </div>
-                        <div className="pt-4 border-t">
-                          <div className="text-sm text-gray-500 mb-1">Your Merits</div>
-                          <div className="text-2xl font-bold text-purple-600">{userMerits}</div>
+                        <div>
+                          <CardTitle className="text-lg text-purple-900">{entry.username}</CardTitle>
+                          <p className="text-sm text-purple-600">{entry.address}</p>
                         </div>
                       </div>
-                    )
-                  })()}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>How to Earn Merits</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 text-green-600 font-bold">
-                      1
                     </div>
-                    <div>
-                      <div className="font-medium">Win Predictions</div>
-                      <div className="text-sm text-gray-500">Correctly predict market outcomes</div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div className="bg-white/50 rounded-lg p-3">
+                        <p className="text-sm text-purple-600">Merits</p>
+                        <p className="text-xl font-bold text-purple-700">{entry.merits}</p>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-3">
+                        <p className="text-sm text-purple-600">Predictions</p>
+                        <p className="text-xl font-bold text-purple-700">{entry.totalPredictions}</p>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-3">
+                        <p className="text-sm text-purple-600">Win Rate</p>
+                        <p className="text-xl font-bold text-green-600">{(entry.winRate * 100).toFixed(1)}%</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 text-green-600 font-bold">
-                      2
+                    <div className="mt-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-600">Total Volume</span>
+                        <span className="font-medium text-purple-700">{(entry.merits * 0.1).toFixed(2)} FLR</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-600">Avg. Stake</span>
+                        <span className="font-medium text-purple-700">{(entry.merits * 0.1 / entry.totalPredictions).toFixed(3)} FLR</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-600">Success Streak</span>
+                        <span className="font-medium text-purple-700">{Math.floor(entry.winRate * 5)} markets</span>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium">Top Staker Bonus</div>
-                      <div className="text-sm text-gray-500">Be the highest staker in a market</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 text-green-600 font-bold">
-                      3
-                    </div>
-                    <div>
-                      <div className="font-medium">Claim Rewards</div>
-                      <div className="text-sm text-gray-500">Don't forget to claim your rewards</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </div>
+          </>
         )}
       </div>
 

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "../lib/web3";
 import { Toaster } from "../components/ui/toast-context";
+import { Providers } from './providers'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,18 +22,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Web3Provider>
-          {children}
-          <Toaster />
-        </Web3Provider>
+        <Providers>
+          <Web3Provider>
+            {children}
+            <Toaster />
+          </Web3Provider>
+        </Providers>
       </body>
     </html>
   );

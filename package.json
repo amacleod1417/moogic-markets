@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "compile": "hardhat compile && ts-node scripts/compile.ts",
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run compile && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -16,16 +17,21 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.14",
     "@supabase/supabase-js": "^2.49.8",
+    "@tanstack/react-query": "^5.79.0",
     "@wagmi/core": "^2.17.2",
+    "@web3-storage/w3up-client": "^17.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.5.0",
     "lucide-react": "^0.511.0",
     "next": "15.3.3",
+    "nft.storage": "^7.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.3.0",
-    "viem": "^2.30.5"
+    "viem": "^2.30.5",
+    "wagmi": "^2.15.4",
+    "web3.storage": "^4.5.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

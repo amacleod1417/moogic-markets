@@ -34,6 +34,7 @@ export function ContractStatus() {
 
       try {
         const code = await provider.getCode(CONTRACT_ADDRESS)
+        console.log("Current network:", await provider.getNetwork())
         console.log("Checking contract code at:", CONTRACT_ADDRESS)
         console.log("Result of getCode:", code)
         const hasCode = Boolean(code && code !== "0x")

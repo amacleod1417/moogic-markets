@@ -41,9 +41,6 @@ export function Header() {
           <Link href="/portfolio" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             My Bets
           </Link>
-          <Link href="/data" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Data Feeds
-          </Link>
           <Link href="/admin" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Admin
           </Link>

@@ -2,7 +2,6 @@ import { Header } from "../components/header"
 import { HeroSection } from "../components/hero-section"
 import { LiveMarkets } from "../components/live-markets"
 import { UserTypes } from "../components/user-types"
-import { LiveDataFeed } from "../components/live-data-feed"
 import { StatsSection } from "../components/stats-section"
 import { Footer } from "../components/footer"
 import { DebugPanel } from "../components/debug-panel"
@@ -15,7 +14,6 @@ export default function HomePage() {
       <HeroSection />
       <LiveMarkets />
       <UserTypes />
-      <LiveDataFeed />
       <StatsSection />
       <Footer />
       <DebugPanel />

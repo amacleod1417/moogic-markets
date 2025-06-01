@@ -1,36 +1,34 @@
 import { ethers } from "ethers"
+import { MoogicMarketABI, CONTRACT_ADDRESS } from "./web3"
 
 const BLOCKSCOUT_API_URL = "https://blockscout.com/flr/coston/api/v2"
 
 export type MeritsData = {
   address: string
   merits: number
+  rank: number
+  username: string
+  totalPredictions: number
+  winRate: number
 }
 
-export async function fetchUserMerits(address: string): Promise<number> {
+export async function fetchUserMerits(provider: ethers.Provider, address: string): Promise<number> {
   try {
-    const response = await fetch(`${BLOCKSCOUT_API_URL}/addresses/${address}/tokens?type=ERC-20`)
-    const data = await response.json()
-    
-    // Find the Merits token in the response
-    const meritsToken = data.data.find((token: any) => 
-      token.token.symbol === "MERITS" || 
-      token.token.name.toLowerCase().includes("merits")
-    )
-    
-    return meritsToken ? Number(ethers.formatUnits(meritsToken.value, meritsToken.token.decimals)) : 0
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, MoogicMarketABI, provider)
+    const merits = await contract.merits(address)
+    return Number(merits)
   } catch (error) {
     console.error("Error fetching user merits:", error)
     return 0
   }
 }
 
-export async function fetchLeaderboard(users: string[]): Promise<MeritsData[]> {
+export async function fetchLeaderboard(provider: ethers.Provider, users: string[]): Promise<MeritsData[]> {
   try {
     const meritsData = await Promise.all(
       users.map(async (address) => ({
         address,
-        merits: await fetchUserMerits(address)
+        merits: await fetchUserMerits(provider, address)
       }))
     )
 

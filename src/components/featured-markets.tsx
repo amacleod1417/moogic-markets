@@ -53,7 +53,7 @@ export function FeaturedMarkets() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Markets</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
             Hot markets with high trading volume and competitive odds
           </p>
         </div>
@@ -69,12 +69,12 @@ export function FeaturedMarkets() {
                         {market.category}
                       </Badge>
                       <div className="flex items-center space-x-1 text-sm">
-                        <Clock className="h-3 w-3 text-gray-500" />
-                        <span className="text-gray-500">{market.timeLeft}</span>
+                        <Clock className="h-3 w-3 text-gray-700" />
+                        <span className="text-gray-700">{market.timeLeft}</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg mb-2">{market.title}</CardTitle>
-                    <p className="text-gray-600 text-sm">{market.description}</p>
+                    <p className="text-gray-700 text-sm">{market.description}</p>
                   </div>
                   <div className="flex items-center space-x-1 ml-4">
                     {market.trend === "up" ? (
@@ -103,7 +103,7 @@ export function FeaturedMarkets() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-gray-500">Volume</div>
+                    <div className="text-sm text-gray-700">Volume</div>
                     <div className="font-semibold">{market.volume}</div>
                   </div>
                 </div>

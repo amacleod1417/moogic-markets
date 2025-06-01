@@ -266,14 +266,14 @@ export default function AdminPage() {
                     className="w-full text-left justify-start"
                     onClick={() =>
                       setNewMarket({
-                        question: "Will Bessie the cow give birth this week?",
+                        question: "Will Bessie's milk production exceed 25 gallons this week?",
                         deadline: getTomorrowDate(),
                         marketType: "BINARY",
                         optionCount: 0
                       })
                     }
                   >
-                    🐄 Cow Birth Prediction
+                    🥛 Milk Production Prediction
                   </Button>
                   <Button
                     variant="outline"
@@ -281,14 +281,14 @@ export default function AdminPage() {
                     className="w-full text-left justify-start"
                     onClick={() =>
                       setNewMarket({
-                        question: "Will it rain more than 2 inches this weekend?",
+                        question: "Will Daisy give birth to twins?",
                         deadline: getTomorrowDate(),
                         marketType: "BINARY",
                         optionCount: 0
                       })
                     }
                   >
-                    🌧️ Weather Prediction
+                    👶 Breeding Outcome
                   </Button>
                   <Button
                     variant="outline"
@@ -296,14 +296,14 @@ export default function AdminPage() {
                     className="w-full text-left justify-start"
                     onClick={() =>
                       setNewMarket({
-                        question: "Will the corn yield exceed 180 bushels per acre?",
+                        question: "What will be Bessie's butterfat content this week?",
                         deadline: getTomorrowDate(),
                         marketType: "MULTI",
                         optionCount: 3
                       })
                     }
                   >
-                    🌽 Crop Yield Prediction
+                    🧈 Milk Quality Prediction
                   </Button>
                 </div>
               </div>
@@ -336,14 +336,14 @@ export default function AdminPage() {
                   <Button
                     variant={resolveMarket.outcome ? "default" : "outline"}
                     onClick={() => setResolveMarket({ ...resolveMarket, outcome: true })}
-                    className="flex-1"
+                    className={`flex-1 ${resolveMarket.outcome ? "bg-purple-600 hover:bg-purple-700" : ""}`}
                   >
                     YES
                   </Button>
                   <Button
                     variant={!resolveMarket.outcome ? "default" : "outline"}
                     onClick={() => setResolveMarket({ ...resolveMarket, outcome: false })}
-                    className="flex-1"
+                    className={`flex-1 ${!resolveMarket.outcome ? "bg-purple-600 hover:bg-purple-700" : ""}`}
                   >
                     NO
                   </Button>
@@ -353,7 +353,7 @@ export default function AdminPage() {
               <Button
                 onClick={handleResolveMarket}
                 disabled={isResolving || !resolveMarket.id}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-purple-600 hover:bg-purple-700"
               >
                 {isResolving ? "Resolving..." : "Resolve Market"}
               </Button>

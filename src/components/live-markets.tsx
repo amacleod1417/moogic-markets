@@ -44,16 +44,20 @@ export function LiveMarkets() {
   const [betType, setBetType] = useState<boolean>(true) // true = YES, false = NO
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isPlacingBet, setIsPlacingBet] = useState<boolean>(false)
-  const [userBets, setUserBets] = useState<{[key: number]: boolean}>({})
+  const [userBets, setUserBets] = useState<{[key: number]: {hasBet: boolean, prediction: boolean, claimed: boolean}}>({})
 
   // Check if user has already bet on each market
   useEffect(() => {
     const checkUserBets = async () => {
       if (!isConnected) return
-      const bets: {[key: number]: boolean} = {}
+      const bets: {[key: number]: {hasBet: boolean, prediction: boolean, claimed: boolean}} = {}
       for (const market of markets) {
         const bet = await getUserBet(market.id)
-        bets[market.id] = bet !== null && Number(bet.amount) > 0
+        bets[market.id] = {
+          hasBet: bet !== null && Number(bet.amount) > 0,
+          prediction: bet?.prediction === true,
+          claimed: bet?.claimed || false
+        }
       }
       setUserBets(bets)
     }
@@ -93,7 +97,7 @@ export function LiveMarkets() {
               Please set the NEXT_PUBLIC_CONTRACT_ADDRESS environment variable to connect to your deployed contract.
             </p>
             <div className="bg-gray-100 p-4 rounded-lg max-w-md mx-auto">
-              <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3</code>
+              <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=0x01a5B26EdeC3e2B4f17BC3D95c47ec8d752AC921</code>
             </div>
           </div>
         </div>
@@ -171,11 +175,11 @@ export function LiveMarkets() {
                               <span className="text-xs text-green-600 font-medium">{confidence}% confidence</span>
                             </div>
                           </div>
-                          <CardTitle className="text-lg mb-2">{market.question}</CardTitle>
-                          <p className="text-gray-600 text-sm mb-2">
+                          <CardTitle className="text-lg mb-2 text-black">{market.question}</CardTitle>
+                          <p className="text-gray-700 text-sm mb-2">
                             Market #{market.id} - {market.resolved ? "Resolved" : "Open for betting"}
                           </p>
-                          <div className="flex items-center space-x-4 text-xs text-gray-500">
+                          <div className="flex items-center space-x-4 text-xs text-gray-700">
                             <div className="flex items-center space-x-1">
                               <MapPin className="h-3 w-3" />
                               <span>{category}</span>
@@ -187,16 +191,16 @@ export function LiveMarkets() {
                           </div>
                         </div>
                         <div className="text-right ml-4">
-                          <div className="text-sm text-gray-500 mb-1">Volume</div>
+                          <div className="text-sm text-gray-700 mb-1">Volume</div>
                           <div className="font-bold text-purple-600">{volume}</div>
-                          <div className="text-xs text-gray-500 mt-1">{timeLeft} left</div>
+                          <div className="text-xs text-gray-700 mt-1">{timeLeft} left</div>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                        <div className="text-xs text-gray-600 mb-1">Data Source:</div>
-                        <div className="text-sm font-medium">
+                        <div className="text-xs text-black mb-1">Data Source:</div>
+                        <div className="text-sm font-medium text-black">
                           {category === "Livestock"
                             ? "Collar sensor + Vet records"
                             : category === "Crops"
@@ -210,11 +214,11 @@ export function LiveMarkets() {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex space-x-6">
                           <div className="text-center">
-                            <div className="text-sm text-gray-500 mb-1">YES</div>
+                            <div className="text-sm text-gray-700 mb-1">YES</div>
                             <div className="text-xl font-bold text-green-600">{market.odds.yes.toFixed(2)}</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-sm text-gray-500 mb-1">NO</div>
+                            <div className="text-sm text-gray-700 mb-1">NO</div>
                             <div className="text-xl font-bold text-red-600">{market.odds.no.toFixed(2)}</div>
                           </div>
                         </div>
@@ -223,30 +227,34 @@ export function LiveMarkets() {
                       {market.resolved ? (
                         <div className="p-3 bg-gray-100 rounded-lg text-center">
                           <p className="font-medium">Outcome: {market.outcome ? "YES" : "NO"}</p>
-                          <Button
-                            onClick={() => claimReward(market.id)}
-                            className="mt-2 bg-purple-600 hover:bg-purple-700"
-                            disabled={!isConnected}
-                          >
-                            Claim Reward
-                          </Button>
+                          {userBets[market.id]?.hasBet && 
+                           userBets[market.id]?.prediction === market.outcome && 
+                           !userBets[market.id]?.claimed && (
+                            <Button
+                              onClick={() => claimReward(market.id)}
+                              className="mt-2 bg-purple-600 hover:bg-purple-700"
+                              disabled={!isConnected}
+                            >
+                              Claim Reward
+                            </Button>
+                          )}
                         </div>
                       ) : (
                         <div className="flex space-x-2">
                           <Button
                             className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                             onClick={() => openBetDialog(market, true)}
-                            disabled={!isConnected || timeLeft === "Ended" || userBets[market.id]}
+                            disabled={!isConnected || timeLeft === "Ended" || userBets[market.id]?.hasBet}
                           >
-                            {userBets[market.id] ? "Already Bet" : "Bet YES"}
+                            {userBets[market.id]?.hasBet ? "Already Bet" : "Bet YES"}
                           </Button>
                           <Button
                             variant="outline"
                             className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
                             onClick={() => openBetDialog(market, false)}
-                            disabled={!isConnected || timeLeft === "Ended" || userBets[market.id]}
+                            disabled={!isConnected || timeLeft === "Ended" || userBets[market.id]?.hasBet}
                           >
-                            {userBets[market.id] ? "Already Bet" : "Bet NO"}
+                            {userBets[market.id]?.hasBet ? "Already Bet" : "Bet NO"}
                           </Button>
                         </div>
                       )}
@@ -281,14 +289,14 @@ export function LiveMarkets() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <h3 className="font-medium">{selectedMarket.question}</h3>
-                <p className="text-sm text-gray-500">
-                  You are betting: <span className="font-bold text-purple-600">{betType ? "YES" : "NO"}</span>
+                <p className="text-sm text-black">
+                  You are betting: <span className="font-bold text-black">{betType ? "YES" : "NO"}</span>
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="amount" className="text-sm font-medium">
-                  Bet Amount (ETH)
+                  Bet Amount (FLR)
                 </label>
                 <Input
                   id="amount"
@@ -298,9 +306,9 @@ export function LiveMarkets() {
                   value={betAmount}
                   onChange={(e) => setBetAmount(e.target.value)}
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-black">
                   Potential win:{" "}
-                  {(Number(betAmount) * (betType ? selectedMarket.odds.yes : selectedMarket.odds.no)).toFixed(4)} ETH
+                  {(Number(betAmount) * (betType ? selectedMarket.odds.yes : selectedMarket.odds.no)).toFixed(4)} FLR
                 </p>
               </div>
             </div>
