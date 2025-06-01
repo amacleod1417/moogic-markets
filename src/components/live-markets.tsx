@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
 import { Clock, Wifi, MapPin } from "lucide-react"
 import { useWeb3, type Market } from "../lib/web3"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog"
 import { Input } from "../components/ui/input"
 
@@ -38,12 +38,27 @@ function getMarketDetails(question: string): { category: string; emoji: string; 
 }
 
 export function LiveMarkets() {
-  const { markets, isConnected, placeBet, claimReward, contractStatus } = useWeb3()
+  const { markets, isConnected, placeBet, claimReward, contractStatus, getUserBet } = useWeb3()
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null)
   const [betAmount, setBetAmount] = useState<string>("0.1")
   const [betType, setBetType] = useState<boolean>(true) // true = YES, false = NO
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isPlacingBet, setIsPlacingBet] = useState<boolean>(false)
+  const [userBets, setUserBets] = useState<{[key: number]: boolean}>({})
+
+  // Check if user has already bet on each market
+  useEffect(() => {
+    const checkUserBets = async () => {
+      if (!isConnected) return
+      const bets: {[key: number]: boolean} = {}
+      for (const market of markets) {
+        const bet = await getUserBet(market.id)
+        bets[market.id] = bet !== null && Number(bet.amount) > 0
+      }
+      setUserBets(bets)
+    }
+    checkUserBets()
+  }, [isConnected, markets, getUserBet])
 
   // Function to handle bet placement
   const handlePlaceBet = async () => {
@@ -78,7 +93,7 @@ export function LiveMarkets() {
               Please set the NEXT_PUBLIC_CONTRACT_ADDRESS environment variable to connect to your deployed contract.
             </p>
             <div className="bg-gray-100 p-4 rounded-lg max-w-md mx-auto">
-              <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=your_contract_address</code>
+              <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3</code>
             </div>
           </div>
         </div>
@@ -221,17 +236,17 @@ export function LiveMarkets() {
                           <Button
                             className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                             onClick={() => openBetDialog(market, true)}
-                            disabled={!isConnected || timeLeft === "Ended"}
+                            disabled={!isConnected || timeLeft === "Ended" || userBets[market.id]}
                           >
-                            Bet YES
+                            {userBets[market.id] ? "Already Bet" : "Bet YES"}
                           </Button>
                           <Button
                             variant="outline"
                             className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
                             onClick={() => openBetDialog(market, false)}
-                            disabled={!isConnected || timeLeft === "Ended"}
+                            disabled={!isConnected || timeLeft === "Ended" || userBets[market.id]}
                           >
-                            Bet NO
+                            {userBets[market.id] ? "Already Bet" : "Bet NO"}
                           </Button>
                         </div>
                       )}

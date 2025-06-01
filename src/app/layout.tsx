@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "../lib/web3";
+import { Toaster } from "../components/ui/toast-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Moogic Markets",
+  title: "CowDAO",
   description: "Decentralized prediction markets for agricultural outcomes",
 };
 
@@ -30,6 +31,7 @@ export default function RootLayout({
       >
         <Web3Provider>
           {children}
+          <Toaster />
         </Web3Provider>
       </body>
     </html>

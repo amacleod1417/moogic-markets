@@ -2,7 +2,6 @@
   "name": "moogic-markets",
   "version": "0.1.0",
   "private": true,
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@blockscout/app-sdk": "^0.1.1",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-select": "^2.2.5",

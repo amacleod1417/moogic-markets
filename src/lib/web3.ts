@@ -4,6 +4,8 @@ import * as React from "react"
 
 import { ethers } from "ethers"
 import { createContext, useContext, useEffect, useState } from "react"
+import { useToast } from "../components/ui/use-toast"
+import { type MeritsData, fetchLeaderboard as fetchLeaderboardData } from "./blockscout-merits"
 
 declare global {
   interface Window {
@@ -24,37 +26,51 @@ export const SUPPORTED_NETWORKS = {
 
 // ABI for the MoogicMarket contract
 export const MoogicMarketABI = [
-  "function createMarket(string memory _question, uint256 _deadline) external",
-  "function placeBet(uint256 _id, bool _prediction) external payable",
+  "function createMarket(string memory _question, uint256 _deadline, uint8 _marketType, uint256 _optionCount) external",
+  "function createMultiOptionMarket(string memory _question, uint256 _deadline, uint256 _optionCount) external",
+  "function placeBet(uint256 _id, uint256 selectedOption) external payable",
   "function resolveMarket(uint256 _id, bool _externalOutcome) external",
   "function claimReward(uint256 _id) external",
-  "function markets(uint256 id) external view returns (uint256 id, string memory question, uint256 deadline, uint8 status, bool outcome, uint256 totalYes, uint256 totalNo, uint256 resolutionTimestamp, bool resolved)",
+  "function markets(uint256 id) external view returns (uint256 id, string memory question, uint256 deadline, uint8 status, uint8 marketType, bool outcome, uint256 winningOption, uint256 totalYes, uint256 totalNo, uint256 resolutionTimestamp, bool resolved, uint256 optionCount)",
   "function bets(uint256 marketId, address bettor) external view returns (bool prediction, uint256 amount, bool claimed)",
+  "function userSelections(uint256 marketId, address user) external view returns (uint256)",
+  "function optionStakes(uint256 marketId, uint256 option) external view returns (uint256)",
   "function marketId() external view returns (uint256)",
   "function owner() external view returns (address)",
+  "function merits(address user) external view returns (uint256)",
+  "function topStakerByMarket(uint256 marketId) external view returns (address)",
+  "function topStakeByMarket(uint256 marketId) external view returns (uint256)",
+  "event MeritEarned(uint256 indexed marketId, address indexed user, uint256 totalMerits)",
+  "event RewardClaimed(uint256 indexed marketId, address indexed bettor, uint256 amount)",
+  "event BonusWinnerSelected(uint256 indexed marketId, address indexed winner)"
 ]
 
 // Contract address - will be set from environment variable
-export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000000"
+export const CONTRACT_ADDRESS: string = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 console.log(CONTRACT_ADDRESS)
 export type Market = {
   id: number
   question: string
   deadline: Date
   status: "OPEN" | "CLOSED" | "RESOLVED"
+  marketType: "BINARY" | "MULTI"
   outcome: boolean | null
-  totalYes: string
-  totalNo: string
+  winningOption: number | null
+  totalYes: number
+  totalNo: number
   resolutionTimestamp: Date | null
   resolved: boolean
+  optionCount: number
   odds: {
     yes: number
     no: number
   }
+  topStaker?: string
+  topStake?: string
 }
 
 export type Bet = {
-  prediction: boolean
+  prediction: boolean | number // boolean for binary, number for multi-option
   amount: string
   claimed: boolean
 }
@@ -76,6 +92,11 @@ type Web3ContextType = {
   getUserBet: (marketId: number) => Promise<Bet | null>
   refreshMarket: (marketId: number) => Promise<Market | null>
   contractStatus: "checking" | "found" | "not-found" | "not-configured"
+  getUserMerits: () => Promise<number>
+  getTopStaker: (marketId: number) => Promise<{ address: string; stake: string }>
+  userMerits: number
+  fetchLeaderboard: () => Promise<MeritsData[]>
+  getExplorerUrl: (type: "tx" | "address", hash: string) => string
 }
 
 const Web3Context = createContext<Web3ContextType>({
@@ -95,6 +116,11 @@ const Web3Context = createContext<Web3ContextType>({
   getUserBet: async () => null,
   refreshMarket: async () => null,
   contractStatus: "checking",
+  getUserMerits: async () => 0,
+  getTopStaker: async () => ({ address: "", stake: "0" }),
+  userMerits: 0,
+  fetchLeaderboard: async () => [],
+  getExplorerUrl: () => ""
 })
 
 export const useWeb3 = () => useContext(Web3Context)
@@ -111,6 +137,9 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   const [contractStatus, setContractStatus] = useState<"checking" | "found" | "not-found" | "not-configured">(
     "checking",
   )
+  const [userMerits, setUserMerits] = useState<number>(0)
+  const [leaderboard, setLeaderboard] = useState<MeritsData[]>([])
+  const { toast } = useToast()
 
   // Check contract status
   useEffect(() => {
@@ -122,7 +151,13 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
 
       if (provider) {
         try {
-          const code = await provider.getCode(CONTRACT_ADDRESS)
+          let code: string
+          try {
+            code = await provider.getCode(CONTRACT_ADDRESS)
+          } catch (e) {
+            console.error("Rate limited when checking contract code:", e)
+            return // or retry after delay
+          }
           console.log("Checking contract code at:", CONTRACT_ADDRESS)
             console.log("Result of getCode:", code)
           if (code && code !== "0x") {
@@ -150,7 +185,10 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsConnecting(true)
       
-      // Request account access
+      // Request account access first
+      await window.ethereum.request({ method: "eth_requestAccounts" })
+      
+      // Then try to switch/add network
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
@@ -164,20 +202,18 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
               method: "wallet_addEthereumChain",
               params: [
                 {
-                    chainId: "0x72", // Hex for 114
-                    chainName: "Flare Coston2 Testnet",
-                    rpcUrls: ["https://coston2-api.flare.network/ext/C/rpc"],
-                    blockExplorerUrls: ["https://coston2-explorer.flare.network/"],
-                    nativeCurrency: {
-                      name: "Coston2 FLR",
-                      symbol: "C2FLR",
-                      decimals: 18,
-                    }
+                  chainId: "0x72",
+                  chainName: "Flare Coston2 Testnet",
+                  rpcUrls: ["https://coston2-api.flare.network/ext/C/rpc"],
+                  blockExplorerUrls: ["https://coston2-explorer.flare.network/"],
+                  nativeCurrency: {
+                    name: "Coston2 FLR",
+                    symbol: "C2FLR",
+                    decimals: 18,
+                  }
                 },
               ],
             })
-      
-            // Try switching again after adding
             await window.ethereum.request({
               method: "wallet_switchEthereumChain",
               params: [{ chainId: "0x72" }],
@@ -192,30 +228,22 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
           alert("Could not switch to Flare Coston network")
           return
         }
-      }      
-      
-  
+      }
+
       const browserProvider = new ethers.BrowserProvider(window.ethereum)
       const network = await browserProvider.getNetwork()
       const userSigner = await browserProvider.getSigner()
       const userAddress = await userSigner.getAddress()
 
-      console.log("Connected to network:", Number(network.chainId), network.name)
-      console.log("User address:", userAddress)
-      console.log("Contract address:", CONTRACT_ADDRESS)
-
-      const marketContract = new ethers.Contract(CONTRACT_ADDRESS, MoogicMarketABI, userSigner)
-
       setProvider(browserProvider)
       setSigner(userSigner)
-      setContract(marketContract)
+      setContract(new ethers.Contract(CONTRACT_ADDRESS, MoogicMarketABI, userSigner))
       setAddress(userAddress)
       setChainId(Number(network.chainId))
       setIsConnected(true)
 
-      // Load markets after connecting
       if (contractStatus === "found") {
-        await loadMarketsInternal(marketContract)
+        await loadMarketsInternal(new ethers.Contract(CONTRACT_ADDRESS, MoogicMarketABI, userSigner))
       }
     } catch (error: any) {
       console.error("Error connecting wallet:", error)
@@ -265,14 +293,17 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
 
       const marketsData: Market[] = []
 
-      for (let i = 0; i < marketCount; i++) {
-        try {
-          const market = await refreshMarketInternal(i, activeContract)
-          if (market) marketsData.push(market)
-        } catch (error) {
-          console.error(`Error loading market ${i}:`, error)
-        }
-      }
+for (let i = 0; i < marketCount; i++) {
+  try {
+    const market = await refreshMarketInternal(i, activeContract)
+    if (market) marketsData.push(market)
+    
+    // 💤 Wait 200ms between requests
+    await new Promise(resolve => setTimeout(resolve, 200))
+  } catch (error) {
+    console.error(`Error loading market ${i}:`, error)
+  }
+}
 
       console.log("Loaded markets:", marketsData)
       setMarkets(marketsData)
@@ -293,11 +324,14 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     if (!activeContract) return null
 
     try {
-      const marketData = await activeContract.markets(marketId)
+      const [marketData, topStakerInfo] = await Promise.all([
+        activeContract.markets(marketId),
+        getTopStaker(marketId)
+      ])
 
       // Calculate odds based on total bets
-      const totalYesEth = ethers.formatEther(marketData[5])
-      const totalNoEth = ethers.formatEther(marketData[6])
+      const totalYesEth = ethers.formatEther(marketData[7])
+      const totalNoEth = ethers.formatEther(marketData[8])
       const totalPool = Number(totalYesEth) + Number(totalNoEth)
 
       // Default odds if no bets
@@ -322,15 +356,20 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
         question: marketData[1],
         deadline: new Date(Number(marketData[2]) * 1000),
         status: ["OPEN", "CLOSED", "RESOLVED"][Number(marketData[3])] as "OPEN" | "CLOSED" | "RESOLVED",
-        outcome: marketData[4],
-        totalYes: ethers.formatEther(marketData[5]),
-        totalNo: ethers.formatEther(marketData[6]),
-        resolutionTimestamp: Number(marketData[7]) > 0 ? new Date(Number(marketData[7]) * 1000) : null,
-        resolved: marketData[8],
+        marketType: Number(marketData[4]) === 0 ? "BINARY" : "MULTI",
+        outcome: marketData[5],
+        winningOption: Number(marketData[6]),
+        totalYes: Number(ethers.formatEther(marketData[7])),
+        totalNo: Number(ethers.formatEther(marketData[8])),
+        resolutionTimestamp: Number(marketData[9]) > 0 ? new Date(Number(marketData[9]) * 1000) : null,
+        resolved: marketData[10],
+        optionCount: Number(marketData[11]),
         odds: {
           yes: yesOdds,
           no: noOdds,
         },
+        topStaker: topStakerInfo.address,
+        topStake: topStakerInfo.stake
       }
 
       return market
@@ -347,31 +386,41 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
 
   // Place a bet
   const placeBet = async (marketId: number, prediction: boolean, amount: string) => {
-    if (!contract || !signer) {
-      alert("Please connect your wallet first")
-      return
-    }
+    if (!signer) return alert("Please connect wallet");
 
     try {
-      console.log(`Placing bet: Market ${marketId}, Prediction: ${prediction}, Amount: ${amount} ETH`)
+      const marketContract = new ethers.Contract(CONTRACT_ADDRESS, MoogicMarketABI, signer);
+      const selectedOption = prediction ? 1 : 0;
 
-      const tx = await contract.placeBet(marketId, prediction, {
+      const tx = await marketContract.placeBet(marketId, selectedOption, {
         value: ethers.parseEther(amount),
-      })
+      });
 
-      console.log("Transaction sent:", tx.hash)
-      await tx.wait()
-      console.log("Bet placed successfully!")
-
-      // Refresh the market data
-      await loadMarkets()
-      alert("Bet placed successfully!")
+      await tx.wait();
+      console.log("Bet placed!");
+      
+      // Refresh markets immediately after bet is placed
+      await loadMarketsInternal(marketContract);
+      
+      // Also refresh user merits
+      await getUserMerits();
     } catch (error: any) {
-      console.error("Error placing bet:", error)
-      alert(`Failed to place bet: ${error?.message || "Unknown error"}`)
+      console.error("Error placing bet:", error);
+      alert(`Failed to place bet: ${error?.message || "Unknown error"}`);
     }
-  }
+  };
 
+  // Add auto-refresh interval for markets
+  useEffect(() => {
+    if (isConnected && contractStatus === "found") {
+      const interval = setInterval(() => {
+        loadMarkets();
+      }, 10000); // Refresh every 10 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [isConnected, contractStatus, loadMarkets]);
+  
   // Claim reward
   const claimReward = async (marketId: number) => {
     if (!contract || !signer) {
@@ -385,14 +434,52 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
       const tx = await contract.claimReward(marketId)
       console.log("Transaction sent:", tx.hash)
 
-      await tx.wait()
+      const receipt = await tx.wait()
       console.log("Reward claimed successfully!")
 
-      alert("Reward claimed successfully!")
+      // Check for events
+      const meritEarned = receipt.logs.some((log: { fragment?: { name: string }, args?: { user: string } }) => 
+        log.fragment?.name === "MeritEarned" && 
+        log.args?.user.toLowerCase() === address?.toLowerCase()
+      )
+
+      const bonusReceived = receipt.logs.some((log: { fragment?: { name: string }, args?: { winner: string } }) => 
+        log.fragment?.name === "BonusWinnerSelected" && 
+        log.args?.winner.toLowerCase() === address?.toLowerCase()
+      )
+
+      // Update UI based on events
+      if (meritEarned) {
+        await getUserMerits()
+        toast({
+          title: "🎉 Merit Earned!",
+          description: "You've earned a merit point for your successful prediction!",
+          variant: "default",
+        })
+      }
+
+      if (bonusReceived) {
+        toast({
+          title: "👑 Bonus Reward!",
+          description: "You received a bonus reward as the top staker!",
+          variant: "default",
+        })
+      }
+
+      toast({
+        title: "Success!",
+        description: "Your reward has been claimed successfully.",
+        variant: "default",
+      })
+
       await loadMarkets()
     } catch (error: any) {
       console.error("Error claiming reward:", error)
-      alert(`Failed to claim reward: ${error?.message || "Unknown error"}`)
+      toast({
+        title: "Error",
+        description: `Failed to claim reward: ${error?.message || "Unknown error"}`,
+        variant: "destructive",
+      })
     }
   }
 
@@ -401,19 +488,66 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     if (!contract || !address) return null
 
     try {
-      const betData = await contract.bets(marketId, address)
+      const market = await refreshMarketInternal(marketId)
+      if (!market) return null
 
-      return {
-        prediction: betData[0],
-        amount: ethers.formatEther(betData[1]),
-        claimed: betData[2],
+      if (market.marketType === "BINARY") {
+        const betData = await contract.bets(marketId, address)
+        return {
+          prediction: betData[0],
+          amount: ethers.formatEther(betData[1]),
+          claimed: betData[2],
+        }
+      } else {
+        const selection = await contract.userSelections(marketId, address)
+        if (selection.eq(0)) return null
+        
+        const option = selection.toNumber() - 1
+        const stake = await contract.optionStakes(marketId, option)
+        
+        return {
+          prediction: option,
+          amount: ethers.formatEther(stake),
+          claimed: false, // You'll need to track this separately for multi-option markets
+        }
       }
     } catch (error) {
       console.error(`Error getting bet for market ${marketId}:`, error)
       return null
     }
   }
-  console.log("Ethereum object:", window.ethereum)
+
+  // Get user's merits
+  const getUserMerits = async (): Promise<number> => {
+    if (!contract || !address) return 0
+    try {
+      const merits = await contract.merits(address)
+      setUserMerits(Number(merits))
+      return Number(merits)
+    } catch (error) {
+      console.error("Error getting user merits:", error)
+      return 0
+    }
+  }
+
+  // Get top staker for a market
+  const getTopStaker = async (marketId: number): Promise<{ address: string; stake: string }> => {
+    if (!contract) return { address: "", stake: "0" }
+    try {
+      const [staker, stake] = await Promise.all([
+        contract.topStakerByMarket(marketId),
+        contract.topStakeByMarket(marketId)
+      ])
+      return {
+        address: staker,
+        stake: ethers.formatEther(stake)
+      }
+    } catch (error) {
+      console.error("Error getting top staker:", error)
+      return { address: "", stake: "0" }
+    }
+  }
+
   // Listen for account changes
   useEffect(() => {
     if (typeof window !== "undefined" && window.ethereum) {
@@ -437,6 +571,35 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [])
 
+  // Add new functions
+  const fetchLeaderboard = async (): Promise<MeritsData[]> => {
+    if (!contract) return []
+    
+    try {
+      // Get all markets to find users who have participated
+      const marketCount = await contract.marketId()
+      const users = new Set<string>()
+      
+      for (let i = 0; i < marketCount; i++) {
+        const market = await contract.markets(i)
+        if (market.topStakerByMarket) {
+          users.add(market.topStakerByMarket)
+        }
+      }
+      
+      const leaderboardData = await fetchLeaderboardData(Array.from(users))
+      setLeaderboard(leaderboardData)
+      return leaderboardData
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error)
+      return []
+    }
+  }
+
+  const getExplorerUrl = (type: "tx" | "address", hash: string) => {
+    return `https://blockscout.com/flr/coston/${type}/${hash}`
+  }
+
   const value = {
     provider,
     signer,
@@ -454,6 +617,11 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     getUserBet,
     refreshMarket,
     contractStatus,
+    getUserMerits,
+    getTopStaker,
+    userMerits,
+    fetchLeaderboard,
+    getExplorerUrl,
   }
 
   return React.createElement(Web3Context.Provider, { value }, children)

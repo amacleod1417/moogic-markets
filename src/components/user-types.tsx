@@ -45,7 +45,7 @@ export function UserTypes() {
     <section className="py-16 bg-gradient-to-br from-gray-50 to-purple-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Who Uses Moogic Markets?</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Who Uses CowDAO?</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             From serious farmers to goat-betting degens, we've got something for everyone
           </p>

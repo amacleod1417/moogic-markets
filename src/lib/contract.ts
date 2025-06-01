@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-const CONTRACT_ADDRESS = "0x9fE3dffDdC2918C59823eBa8420835F0226f03c4";
+const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 let provider: ethers.BrowserProvider | null = null;
 

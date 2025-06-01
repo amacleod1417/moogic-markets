@@ -20,7 +20,7 @@ export function Header() {
           </div>
           <div>
             <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Moogic Markets
+              CowDAO
             </span>
             <Badge variant="secondary" className="ml-2 text-xs">
               BETA
@@ -34,6 +34,9 @@ export function Header() {
           </Link>
           <Link href="/farms" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Farm Feeds
+          </Link>
+          <Link href="/leaderboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Leaderboard
           </Link>
           <Link href="/portfolio" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             My Bets

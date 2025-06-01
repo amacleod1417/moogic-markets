@@ -78,7 +78,7 @@ export function LiveMarkets() {
               Please set the NEXT_PUBLIC_CONTRACT_ADDRESS environment variable to connect to your deployed contract.
             </p>
             <div className="bg-gray-100 p-4 rounded-lg max-w-md mx-auto">
-              <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=your_contract_address</code>
+              <code className="text-sm">NEXT_PUBLIC_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3</code>
             </div>
           </div>
         </div>

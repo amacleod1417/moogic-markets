@@ -11,7 +11,7 @@ export function Footer() {
             <div className="flex items-center space-x-2 mb-4">
               <Cow className="h-6 w-6 text-purple-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Moogic Markets
+                CowDAO
               </span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
@@ -105,7 +105,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; 2024 Moogic Markets. Built with 🐄 and ❤️ for the agricultural DeFi revolution.</p>
+          <p>&copy; 2024 CowDAO. Built with 🐄 and ❤️ for the agricultural DeFi revolution.</p>
           <p className="mt-2 text-xs">Not financial advice. Please bet responsibly on farm animals.</p>
         </div>
       </div>

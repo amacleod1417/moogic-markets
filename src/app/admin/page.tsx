@@ -2,7 +2,7 @@
 
 import { Header } from "../../components/header"
 import { Footer } from "../../components/footer"
-import { useWeb3 } from "../../lib/web3"
+import { useWeb3, CONTRACT_ADDRESS, MoogicMarketABI } from "../../lib/web3"
 import { useState } from "react"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
@@ -11,42 +11,62 @@ import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 import { Badge } from "../../components/ui/badge"
 import { PlusCircle, CheckCircle, AlertCircle } from "lucide-react"
+import { ethers } from "ethers"
 import * as React from "react"
 
 export default function AdminPage() {
-  const { isConnected, connect, contract, address, markets, loadMarkets, contractStatus } = useWeb3()
+  const { isConnected, connect, contract, address, markets, loadMarkets, contractStatus, signer } = useWeb3()
   const [isCreating, setIsCreating] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
   const [newMarket, setNewMarket] = useState({
     question: "",
     deadline: "",
+    marketType: "BINARY",
+    optionCount: 0,
   })
   const [resolveMarket, setResolveMarket] = useState({
     id: "",
     outcome: true,
   })
 
+  
+
   // Create a new market
   const handleCreateMarket = async () => {
-    if (!contract || !newMarket.question || !newMarket.deadline) {
+    if (!signer || !newMarket.question || !newMarket.deadline) {
       alert("Please fill in all fields")
       return
     }
-
+  
+    setIsCreating(true)
     try {
-      setIsCreating(true)
       const deadlineTimestamp = Math.floor(new Date(newMarket.deadline).getTime() / 1000)
-
-      console.log("Creating market:", newMarket.question, deadlineTimestamp)
-
-      const tx = await contract.createMarket(newMarket.question, deadlineTimestamp)
+      const marketTypeEnum = newMarket.marketType === "MULTI" ? 1 : 0
+      const optionCount = marketTypeEnum === 1 ? newMarket.optionCount : 0
+  
+      const freshContract = new ethers.Contract(CONTRACT_ADDRESS, MoogicMarketABI, signer)
+  
+      console.log("Creating market with params:", {
+        question: newMarket.question,
+        deadline: deadlineTimestamp,
+        marketTypeEnum,
+        optionCount,
+      })
+  
+      // Always prompt MetaMask directly with a write call (estimateGas is optional)
+      const tx = await freshContract.createMarket(
+        newMarket.question,
+        deadlineTimestamp,
+        marketTypeEnum,
+        optionCount
+      )
+  
       console.log("Transaction sent:", tx.hash)
-
       await tx.wait()
-      console.log("Market created successfully!")
-
+      console.log("Market created!")
+  
       alert("Market created successfully!")
-      setNewMarket({ question: "", deadline: "" })
+      setNewMarket({ question: "", deadline: "", marketType: "BINARY", optionCount: 0 })
       await loadMarkets()
     } catch (error: any) {
       console.error("Error creating market:", error)
@@ -55,6 +75,7 @@ export default function AdminPage() {
       setIsCreating(false)
     }
   }
+  
 
   // Resolve a market
   const handleResolveMarket = async () => {
@@ -183,6 +204,39 @@ export default function AdminPage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="marketType">Market Type</Label>
+                <div className="flex space-x-2">
+                  <Button
+                    variant={newMarket.marketType === "BINARY" ? "default" : "outline"}
+                    onClick={() => setNewMarket({ ...newMarket, marketType: "BINARY", optionCount: 0 })}
+                    className={`flex-1 ${newMarket.marketType === "BINARY" ? "bg-purple-600 hover:bg-purple-700" : ""}`}
+                  >
+                    Binary (Yes/No)
+                  </Button>
+                  <Button
+                    variant={newMarket.marketType === "MULTI" ? "default" : "outline"}
+                    onClick={() => setNewMarket({ ...newMarket, marketType: "MULTI", optionCount: 2 })}
+                    className={`flex-1 ${newMarket.marketType === "MULTI" ? "bg-purple-600 hover:bg-purple-700" : ""}`}
+                  >
+                    Multi-Option
+                  </Button>
+                </div>
+              </div>
+
+              {newMarket.marketType === "MULTI" && (
+                <div className="space-y-2">
+                  <Label htmlFor="optionCount">Number of Options</Label>
+                  <Input
+                    id="optionCount"
+                    type="number"
+                    min="2"
+                    value={newMarket.optionCount}
+                    onChange={(e) => setNewMarket({ ...newMarket, optionCount: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
                 <Label htmlFor="deadline">Deadline</Label>
                 <Input
                   id="deadline"
@@ -195,7 +249,8 @@ export default function AdminPage() {
 
               <Button
                 onClick={handleCreateMarket}
-                disabled={isCreating || !newMarket.question || !newMarket.deadline}
+                disabled={isCreating || !newMarket.question || !newMarket.deadline || 
+                  (newMarket.marketType === "MULTI" && newMarket.optionCount < 2)}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
                 {isCreating ? "Creating..." : "Create Market"}
@@ -213,6 +268,8 @@ export default function AdminPage() {
                       setNewMarket({
                         question: "Will Bessie the cow give birth this week?",
                         deadline: getTomorrowDate(),
+                        marketType: "BINARY",
+                        optionCount: 0
                       })
                     }
                   >
@@ -226,6 +283,8 @@ export default function AdminPage() {
                       setNewMarket({
                         question: "Will it rain more than 2 inches this weekend?",
                         deadline: getTomorrowDate(),
+                        marketType: "BINARY",
+                        optionCount: 0
                       })
                     }
                   >
@@ -239,6 +298,8 @@ export default function AdminPage() {
                       setNewMarket({
                         question: "Will the corn yield exceed 180 bushels per acre?",
                         deadline: getTomorrowDate(),
+                        marketType: "MULTI",
+                        optionCount: 3
                       })
                     }
                   >
