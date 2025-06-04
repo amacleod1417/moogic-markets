@@ -1,7 +1,7 @@
 {
     "name": "Bessie #1",
     "description": "A Flare-powered betting cow NFT from CowDAO",
-    "image": "ipfs://bafybeiczsscdsbs7ffqz55asqdf3smv6klcw3gofszvwlyarci47bgf354",
+    "image": "ipfs://QmV1jTHezw935fHdbg38eUkX1MQ7YP53E6MjCUtBneRfr1",
     "attributes": [
       { "trait_type": "Breed", "value": "Holstein" },
       { "trait_type": "Milk Output", "value": "20 gal/day" },

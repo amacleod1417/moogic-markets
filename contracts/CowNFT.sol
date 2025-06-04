@@ -19,7 +19,7 @@ contract CowNFT is ERC721, Ownable {
     function mintCow(address to, string memory cid) external onlyOwner {
         uint256 tokenId = nextTokenId++;
         _mint(to, tokenId);
-        cowMetadataCID[tokenId] = cid;
+        cowMetadataCID[tokenId] = "QmT8yWAQzuPrZsLFBaAmX43Unuj1YTNczCmxMM1juW9yPx";
         // Create vault and bind it to cow NFT
         uint256 vaultId = beraborrow.createVault(to);
         cowToVault[tokenId] = vaultId;

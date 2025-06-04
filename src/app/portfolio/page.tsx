@@ -26,6 +26,13 @@ type OwnedCow = {
   stats: CowStats | null
 }
 
+// Add a type for NFT metadata
+interface CowNFTMetadata {
+  name: string;
+  description: string;
+  image: string;
+}
+
 export default function PortfolioPage() {
   const { isConnected, connect, markets, loadMarkets, getUserBet, claimReward, userMerits, getUserMerits, address } = useWeb3()
   const [userBets, setUserBets] = useState<UserBet[]>([])
@@ -36,6 +43,7 @@ export default function PortfolioPage() {
   const [ownedCows, setOwnedCows] = useState<OwnedCow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+  const [cowMetadatas, setCowMetadatas] = useState<Record<number, CowNFTMetadata | null>>({})
 
   // Load markets and merits on mount
   useEffect(() => {
@@ -226,6 +234,30 @@ export default function PortfolioPage() {
     fetchOwnedCows()
   }, [wagmiAddress, walletClient])
 
+  // Fetch metadata for each owned cow
+  useEffect(() => {
+    const fetchMetadatas = async () => {
+      const metadatas: Record<number, CowNFTMetadata | null> = {};
+      for (const cow of ownedCows) {
+        try {
+          // Fetch tokenURI from contract
+          if (!walletClient) continue;
+          const cowNFT = getCowNFTContract(walletClient);
+          const tokenURI = await cowNFT.tokenURI(cow.tokenId);
+          // Fetch metadata from IPFS
+          const metadata = await fetch(tokenURI).then(res => res.json());
+          metadatas[cow.tokenId] = metadata;
+        } catch (e) {
+          metadatas[cow.tokenId] = null;
+        }
+      }
+      setCowMetadatas(metadatas);
+    };
+    if (ownedCows.length > 0) {
+      fetchMetadatas();
+    }
+  }, [ownedCows, walletClient]);
+
   // Don't render anything while doing initial load
   if (initialLoad) {
     return (
@@ -393,9 +425,19 @@ export default function PortfolioPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      {/* Display Bessie image */}
+                      {/* Display NFT image from metadata if available */}
                       <div className="flex justify-center mb-4">
-                        <img src="/bessie.png" alt="Bessie the Cow" className="w-32 h-32 object-contain rounded-lg" />
+                        {cowMetadatas[cow.tokenId]?.image ? (
+                          <img
+                            src={cowMetadatas[cow.tokenId].image.replace("ipfs://", "https://ipfs.filebase.io/ipfs/")}
+                            alt={cowMetadatas[cow.tokenId].name || "Bessie the Cow"}
+                            className="w-32 h-32 object-contain rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                            No Image
+                          </div>
+                        )}
                       </div>
                       {cow.stats ? (
                         <div className="space-y-4">

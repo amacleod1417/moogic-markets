@@ -252,7 +252,32 @@ export const getCowNFTContract = (walletClient: WalletClient) => {
                 }
                 throw error
             }
-        }
+        },
+        tokenURI: async (tokenId: number) => {
+            try {
+                validateAddress(COW_NFT_ADDRESS)
+                console.log('Calling tokenURI on contract:', COW_NFT_ADDRESS)
+                const result = await publicClient.readContract({
+                    address: COW_NFT_ADDRESS as `0x${string}`,
+                    abi: CowNFTAbi.abi,
+                    functionName: 'tokenURI',
+                    args: [tokenId]
+                })
+                console.log('tokenURI result:', result)
+                return result as string
+            } catch (error) {
+                console.error('Error in tokenURI:', error)
+                if (error instanceof Error) {
+                    console.error('Error details:', {
+                        message: error.message,
+                        stack: error.stack,
+                        contractAddress: COW_NFT_ADDRESS,
+                        tokenId
+                    })
+                }
+                throw error
+            }
+        },
     }
 }
 
